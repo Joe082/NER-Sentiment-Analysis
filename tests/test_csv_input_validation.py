@@ -66,3 +66,19 @@ def test_valid_csv_returns_documents(tmp_path):
         "BrightEdge is useful.",
         "Semrush is popular.",
     ]
+
+def test_explicit_column_overrides_default_column(tmp_path):
+    csv_file = tmp_path / "custom_column.csv"
+    csv_file.write_text(
+        "input_doc,custom_text\n"
+        "Default text,Selected text\n",
+        encoding="utf-8",
+    )
+
+    args = SimpleNamespace(
+        csv=str(csv_file),
+        column="custom_text",
+        jsonl=None,
+    )
+
+    assert load_docs(args) == ["Selected text"]
