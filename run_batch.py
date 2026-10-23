@@ -36,12 +36,29 @@ def sha(text: str) -> str:
 
 def load_docs(args) -> list[str]:
     if args.csv:
-        with open(args.csv, encoding="utf-8") as f:
-            rows = list(csv.DictReader(f))
-        col = args.column or ("input_doc" if "input_doc" in rows[0] else list(rows[0])[0])
-        return [r[col] for r in rows if r.get(col, "").strip()]
+        with open(args.csv, encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            fieldnames = reader.fieldnames
+
+            if not fieldnames:
+                raise ValueError("CSV file is missing a header")
+
+            col = args.column or (
+                "input_doc" if "input_doc" in fieldnames else fieldnames[0]
+            )
+
+            if col not in fieldnames:
+                raise ValueError(f"CSV column not found: {col}")
+
+            return [
+                row[col]
+                for row in reader
+                if (row.get(col) or "").strip()
+            ]
+
     if args.jsonl:
         return [json.loads(l)["text"] for l in open(args.jsonl, encoding="utf-8") if l.strip()]
+
     raise SystemExit("provide --csv or --jsonl")
 
 
